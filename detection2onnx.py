@@ -1,4 +1,3 @@
-import argparse
 import os.path as osp
 import warnings
 
@@ -6,7 +5,6 @@ import numpy as np
 import onnx
 import onnxruntime as rt
 import torch
-from mmcv import DictAction
 
 from mmdet.core import (build_model_from_cfg, generate_inputs_and_wrap_model,
                         preprocess_example_input)
@@ -79,17 +77,25 @@ def convertDetection2Onnx(config_path,
 
     # simplify onnx model
     if do_simplify:
-        from mmdet import digit_version
-        import mmcv
+        from onnxsim import simplify
 
-        min_required_version = '1.2.5'
-        assert digit_version(mmcv.__version__) >= digit_version(
-            min_required_version
-        ), f'Requires to install mmcv>={min_required_version}'
-        from mmcv.onnx.simplify import simplify
+        ort_custom_op_path = ''
+        try:
+            from mmcv.ops import get_onnxruntime_op_path
+            ort_custom_op_path = get_onnxruntime_op_path()
+        except (ImportError, ModuleNotFoundError):
+            warnings.warn('If input model has custom op from mmcv, \
+                you may have to build mmcv with ONNXRuntime from source.')
 
-        input_dic = {'input': one_img.detach().cpu().numpy()}
-        _ = simplify(output_file, [input_dic], output_file)
+        onnx_opt_model, _ = simplify(output_file,
+                                     check_n=0,
+                                     skip_fuse_bn=True,
+                                     skip_shape_inference=True,
+                                     input_shapes=dict(input=[1,3,400,800]),
+                                     dynamic_input_shape=True,
+                                     custom_lib=ort_custom_op_path)
+        onnx.save(onnx_opt_model, output_file)
+
     print(f'Successfully exported ONNX model: {output_file}')
 
     if verify:

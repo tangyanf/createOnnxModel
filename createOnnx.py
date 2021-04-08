@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument('--config', help='config file path')
     parser.add_argument('--checkpoint', help='checkpoint file path')
     parser.add_argument('--dynamic-shape', action='store_true', help='whether to export onnx with dynamic shape')
+    parser.add_argument('--simplify', action='store_true', help='whether to simplify onnx model')
     args = parser.parse_args()
     return args
 
@@ -34,7 +35,8 @@ if __name__ == '__main__':
                               output_file='tmp.onnx',
                               verify=False,
                               normalize_cfg=normalize_cfg,
-                              dynamic_export=args.dynamic_shape)
+                              dynamic_export=args.dynamic_shape,
+                              do_simplify=args.simplify)
     if args.classification:
         convertCls2Onnx(args.config,
                         args.checkpoint,

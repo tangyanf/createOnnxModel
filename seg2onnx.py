@@ -1,10 +1,11 @@
-import argparse
 from functools import partial
 
 import mmcv
 import numpy as np
 import onnxruntime as rt
 import torch
+import onnx
+import warnings
 import torch._C
 import torch.serialization
 from mmcv.onnx import register_extra_symbolics
@@ -72,6 +73,7 @@ def convertSeg2Onnx(config,
                     input_shape,
                     opset_version=11,
                     dynamic_shape=False,
+                    do_simplify=False,
                     show=False,
                     output_file='tmp.onnx',
                     verify=False):
@@ -151,11 +153,31 @@ def convertSeg2Onnx(config,
             dynamic_axes=dynamic_axes,
             opset_version=opset_version)
         print(f'Successfully exported ONNX model: {output_file}')
+
+        # simplify onnx model
+        if do_simplify:
+            from onnxsim import simplify
+
+            ort_custom_op_path = ''
+            try:
+                from mmcv.ops import get_onnxruntime_op_path
+                ort_custom_op_path = get_onnxruntime_op_path()
+            except (ImportError, ModuleNotFoundError):
+                warnings.warn('If input model has custom op from mmcv, \
+                    you may have to build mmcv with ONNXRuntime from source.')
+
+            onnx_opt_model, _ = simplify(output_file,
+                                         check_n=0,
+                                         skip_fuse_bn=True,
+                                         skip_shape_inference=True,
+                                         input_shapes=dict(input=[1, 3, 400, 800]),
+                                         dynamic_input_shape=True,
+                                         custom_lib=ort_custom_op_path)
+            onnx.save(onnx_opt_model, output_file)
     model.forward = origin_forward
 
     if verify:
         # check by onnx
-        import onnx
         onnx_model = onnx.load(output_file)
         onnx.checker.check_model(onnx_model)
 
