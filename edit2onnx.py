@@ -14,8 +14,8 @@ from mmedit.models import build_model
 merged_img = os.path.join(os.path.dirname(__file__), './data/merged/GT05.jpg')
 trimap_img = os.path.join(os.path.dirname(__file__), './data/merged/GT05.jpg')
 
-lq_img = os.path.join(os.path.dirname(__file__), './data/img.jpg')
-gt_img = os.path.join(os.path.dirname(__file__), './data/img.jpg')
+lq_img = os.path.join(os.path.dirname(__file__), './data/lq/baboon_x4.png')
+gt_img = os.path.join(os.path.dirname(__file__), './data/gt/baboon.png')
 
 def convertEdit2Onnx(config,
                      checkpoint,
