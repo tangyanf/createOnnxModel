@@ -7,6 +7,7 @@ from seg2onnx import convertSeg2Onnx
 def parse_args():
     parser = argparse.ArgumentParser(description='convert mmlab model to ONNX')
     parser.add_argument('--class-name', type=str, help='which model class you want to convert, such as: detection/classification/editing/segmentation')
+    parser.add_argument('--edit-class', help='which edit model class you want to convert, such as: mattors/restorers')
     parser.add_argument('--config', help='config file path')
     parser.add_argument('--checkpoint', help='checkpoint file path')
     parser.add_argument('--dynamic-shape', action='store_true', help='whether to export onnx with dynamic shape')
@@ -24,8 +25,6 @@ if __name__ == '__main__':
     input_shape = (1,3,400,800)
     mean = [123.675, 116.28, 103.53]
     std = [58.395, 57.12, 57.375]
-    merged_img = os.path.join(os.path.dirname(__file__), './data/merged/GT05.jpg')
-    trimap_img = os.path.join(os.path.dirname(__file__), './data/merged/GT05.jpg')
     try:
         if args.class_name is None:
             raise RuntimeError()
@@ -77,20 +76,21 @@ if __name__ == '__main__':
                             do_simplify=args.simplify)
         elif args.class_name == 'editing':
             try:
+                if args.edit_class is None:
+                    raise ValueError('please use --edit-class mattors/restores chose which edit model class to convert')
                 if args.dynamic_shape is False:
                     convertEdit2Onnx(args.config,
                                      args.checkpoint,
-                                     merged_img,
-                                     trimap_img,
+                                     edit_class=args.edit_class,
                                      verify=args.verify,
                                      save_input=args.save_input,
                                      save_output=args.save_output,
                                      output_file=out_file,
                                      do_simplify=args.simplify)
                 else:
-                    raise RuntimeError()
-            except RuntimeError:
-                print('editing model now do not support dynamic shape')
+                    raise RuntimeError('editing model now do not support dynamic shape')
+            except ValueError:
+                raise
 
         elif args.class_name == 'segmentation':
             try:

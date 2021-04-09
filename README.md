@@ -2,7 +2,7 @@
 a tool to convert mmlab model to onnx
 
 ## requirement
-* python >= 3.5
+* python == 3.8
 * pytorch == 1.6
   ```shell
   pip install torch==1.6.0 torchvision==0.7.0
