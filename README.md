@@ -69,5 +69,19 @@ a tool to convert mmlab model to onnx
 
 ## usage
 ```shell
-python createOnnx.py --
+python createOnnx.py --class-name detection \
+                     --config xxx.pth \
+                     --checkpoint xxx.point \
+                     --simplify \
+                     --save-input \
+                     --save-output \
+                     --veirfy
 ```
+### Parameter Description
+* --class-name:&nbsp;&nbsp;which class to convert(detection/classification/segmentation/editin)
+* --config:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config file
+* --checkpoint:&nbsp;&nbsp;  checkpoint file
+* --simplify:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;whether to simplify onnx model
+* --save-input:&nbsp;&nbsp;&nbsp;  whether to save model's input
+* --save-output:&nbsp; whether to save onnxruntime's output
+* --verify&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;whether compare the outputs between Pytorch and ONNX
