@@ -41,6 +41,8 @@ def convertCls2Onnx(config,
                     opset_version=11,
                     dynamic_shape=False,
                     do_simplify=False,
+                    save_input=False,
+                    save_output=False,
                     show=False,
                     output_file='tmp.onnx',
                     verify=False):
@@ -113,39 +115,40 @@ def convertCls2Onnx(config,
                                          custom_lib=ort_custom_op_path)
             onnx.save(onnx_opt_model, output_file)
         print(f'Successfully exported ONNX model: {output_file}')
-    model.forward = origin_forward
+
+    if save_input:
+        img_list[0].detach().numpy().tofile('input.bin')
+
+    if not save_output and not verify:
+        return
+
+    # check by onnx
+    onnx_model = onnx.load(output_file)
+    onnx.checker.check_model(onnx_model)
+    # get onnx output
+    input_all = [node.name for node in onnx_model.graph.input]
+    input_initializer = [
+        node.name for node in onnx_model.graph.initializer
+    ]
+    net_feed_input = list(set(input_all) - set(input_initializer))
+    assert (len(net_feed_input) == 1)
+    sess = rt.InferenceSession(output_file)
+    print(img_list[0].detach().numpy().dtype)
+    print(img_list[0].detach().numpy().shape)
+    onnx_result = sess.run(
+        None, {net_feed_input[0]: img_list[0].detach().numpy()})[0]
+
+    if save_output:
+        np.array(onnx_result).tofile('output.bin')
 
     if verify:
-        # check by onnx
-        onnx_model = onnx.load(output_file)
-        onnx.checker.check_model(onnx_model)
-
-        # test the dynamic model
-        if dynamic_shape:
-            dynamic_test_inputs = _demo_mm_inputs(
-                (input_shape[0], input_shape[1], input_shape[2] * 2,
-                 input_shape[3] * 2), model.head.num_classes)
-            imgs = dynamic_test_inputs.pop('imgs')
-            img_list = [img[None, :] for img in imgs]
-
         # check the numerical value
         # get pytorch output
+        model.forward = origin_forward
         pytorch_result = model(img_list, img_metas={}, return_loss=False)[0]
 
-        # get onnx output
-        input_all = [node.name for node in onnx_model.graph.input]
-        input_initializer = [
-            node.name for node in onnx_model.graph.initializer
-        ]
-        net_feed_input = list(set(input_all) - set(input_initializer))
-        assert (len(net_feed_input) == 1)
-        sess = rt.InferenceSession(output_file)
-        print(img_list[0].detach().numpy().dtype)
-        print(img_list[0].detach().numpy().shape)
-        img_list[0].detach().numpy().tofile('input.bin')
-        onnx_result = sess.run(
-            None, {net_feed_input[0]: img_list[0].detach().numpy()})[0]
-        if not np.allclose(pytorch_result, onnx_result):
-            raise ValueError(
-                'The outputs are different between Pytorch and ONNX')
-        print('The outputs are same between Pytorch and ONNX')
+        try:
+            assert np.allclose(pytorch_result, onnx_result)
+            print('The outputs are same between Pytorch and ONNX')
+        except AssertionError:
+            print('The outputs are different between Pytorch and ONNX')

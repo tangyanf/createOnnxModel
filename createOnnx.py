@@ -12,6 +12,9 @@ def parse_args():
     parser.add_argument('--dynamic-shape', action='store_true', help='whether to export onnx with dynamic shape')
     parser.add_argument('--onnx-name', type=str, help='onnx model file name')
     parser.add_argument('--simplify', action='store_true', help='whether to simplify onnx model')
+    parser.add_argument('--verify', action='store_true', help='compare pytorch output with onnxruntime output')
+    parser.add_argument('--save-input', action='store_true', help='save input')
+    parser.add_argument('--save-output', action='store_true', help='save output')
     args = parser.parse_args()
     return args
 
@@ -56,7 +59,9 @@ if __name__ == '__main__':
                                   input_shape,
                                   opset_version=11,
                                   output_file=out_file,
-                                  verify=False,
+                                  verify=args.verify,
+                                  save_input=args.save_input,
+                                  save_output=args.save_output,
                                   normalize_cfg=normalize_cfg,
                                   dynamic_export=args.dynamic_shape,
                                   do_simplify=args.simplify)
@@ -64,19 +69,44 @@ if __name__ == '__main__':
             convertCls2Onnx(args.config,
                             args.checkpoint,
                             input_shape,
-                            output_file=out_file)
+                            verify=args.verify,
+                            save_input=args.save_input,
+                            save_output=args.save_output,
+                            dynamic_shape=args.dynamic_shape,
+                            output_file=out_file,
+                            do_simplify=args.simplify)
         elif args.class_name == 'editing':
-            convertEdit2Onnx(args.config,
-                             args.checkpoint,
-                             merged_img,
-                             trimap_img,
-                             output_file=out_file)
+            try:
+                if args.dynamic_shape is False:
+                    convertEdit2Onnx(args.config,
+                                     args.checkpoint,
+                                     merged_img,
+                                     trimap_img,
+                                     verify=args.verify,
+                                     save_input=args.save_input,
+                                     save_output=args.save_output,
+                                     output_file=out_file,
+                                     do_simplify=args.simplify)
+                else:
+                    raise RuntimeError()
+            except RuntimeError:
+                print('editing model now do not support dynamic shape')
 
         elif args.class_name == 'segmentation':
-            convertSeg2Onnx(args.config,
-                            args.checkpoint,
-                            input_shape,
-                            output_file=out_file)
+            try:
+                if args.dynamic_shape is False:
+                    convertSeg2Onnx(args.config,
+                                    args.checkpoint,
+                                    input_shape,
+                                    save_input=args.save_input,
+                                    save_output=args.save_output,
+                                    verify=args.verify,
+                                    output_file=out_file,
+                                    do_simplify=args.simplify)
+                else:
+                    raise RuntimeError()
+            except RuntimeError:
+                print('segmentation model now do not support dynamic shape')
         else:
             raise RuntimeError()
     except RuntimeError:

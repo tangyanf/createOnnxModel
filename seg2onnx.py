@@ -72,9 +72,10 @@ def convertSeg2Onnx(config,
                     checkpoint,
                     input_shape,
                     opset_version=11,
-                    dynamic_shape=False,
                     do_simplify=False,
                     show=False,
+                    save_input=False,
+                    save_output=False,
                     output_file='tmp.onnx',
                     verify=False):
     """Export Pytorch model to ONNX model and verify the outputs are same
@@ -124,22 +125,6 @@ def convertSeg2Onnx(config,
     model.forward = partial(
         model.forward, img_metas=img_meta_list, return_loss=False)
 
-    # support dynamic shape export
-    if dynamic_shape:
-        dynamic_axes = {
-            'input': {
-                0: 'batch',
-                2: 'width',
-                3: 'height'
-            },
-            'output': {
-                0: 'batch'
-            }
-        }
-    else:
-        dynamic_axes = {}
-
-
     register_extra_symbolics(opset_version)
     with torch.no_grad():
         torch.onnx.export(
@@ -150,7 +135,6 @@ def convertSeg2Onnx(config,
             export_params=True,
             keep_initializers_as_inputs=True,
             verbose=show,
-            dynamic_axes=dynamic_axes,
             opset_version=opset_version)
         print(f'Successfully exported ONNX model: {output_file}')
 
@@ -174,28 +158,39 @@ def convertSeg2Onnx(config,
                                          dynamic_input_shape=True,
                                          custom_lib=ort_custom_op_path)
             onnx.save(onnx_opt_model, output_file)
-    model.forward = origin_forward
+
+    if save_input:
+        img_list[0].detach().numpy().tofile('input.bin')
+
+    if not save_output and not verify:
+        return
+
+    # check by onnx
+    onnx_model = onnx.load(output_file)
+    onnx.checker.check_model(onnx_model)
+    # get onnx output
+    input_all = [node.name for node in onnx_model.graph.input]
+    input_initializer = [
+        node.name for node in onnx_model.graph.initializer
+    ]
+    net_feed_input = list(set(input_all) - set(input_initializer))
+    assert (len(net_feed_input) == 1)
+    sess = rt.InferenceSession(output_file)
+    onnx_result = sess.run(
+        None, {net_feed_input[0]: img_list[0].detach().numpy()})[0]
+
+    if save_output:
+        np.array(onnx_result).tofile('output.bin')
+
 
     if verify:
-        # check by onnx
-        onnx_model = onnx.load(output_file)
-        onnx.checker.check_model(onnx_model)
-
-        # check the numerical value
         # get pytorch output
+        model.forward = origin_forward
         pytorch_result = model(img_list, img_meta_list, return_loss=False)[0]
 
-        # get onnx output
-        input_all = [node.name for node in onnx_model.graph.input]
-        input_initializer = [
-            node.name for node in onnx_model.graph.initializer
-        ]
-        net_feed_input = list(set(input_all) - set(input_initializer))
-        assert (len(net_feed_input) == 1)
-        sess = rt.InferenceSession(output_file)
-        onnx_result = sess.run(
-            None, {net_feed_input[0]: img_list[0].detach().numpy()})[0]
-        if not np.allclose(pytorch_result, onnx_result):
-            raise ValueError(
-                'The outputs are different between Pytorch and ONNX')
-        print('The outputs are same between Pytorch and ONNX')
+        # check the numerical value
+        try:
+            assert np.allclose(pytorch_result, onnx_result)
+            print('The outputs are same between Pytorch and ONNX')
+        except AssertionError:
+            print('The outputs are different between Pytorch and ONNX')

@@ -19,6 +19,8 @@ def convertEdit2Onnx(config,
                      show=False,
                      do_simplify=False,
                      output_file='tmp.onnx',
+                     save_input=False,
+                     save_output=False,
                      verify=False):
 
     config = mmcv.Config.fromfile(config)
@@ -90,26 +92,37 @@ def convertEdit2Onnx(config,
                                          custom_lib=ort_custom_op_path)
             onnx.save(onnx_opt_model, output_file)
     print(f'Successfully exported ONNX model: {output_file}')
-    if verify:
-        # check by onnx
-        onnx_model = onnx.load(output_file)
-        onnx.checker.check_model(onnx_model)
 
+    if save_input:
+        input.detach().numpy().tofile('input.bin')
+
+    if not save_output and not verify:
+        return
+
+    # check by onnx
+    onnx_model = onnx.load(output_file)
+    onnx.checker.check_model(onnx_model)
+    # get onnx output
+    sess = rt.InferenceSession(output_file)
+    onnx_result = sess.run(None, {
+        'cat_input': input.detach().numpy(),
+    })
+    # only concern pred_alpha value
+    if isinstance(onnx_result, (tuple, list)):
+        onnx_result = onnx_result[0]
+
+    if save_output:
+        np.array(onnx_result).tofile('output.bin')
+
+    if verify:
         # get pytorch output, only concern pred_alpha
         pytorch_result = model(input)
         if isinstance(pytorch_result, (tuple, list)):
             pytorch_result = pytorch_result[0]
         pytorch_result = pytorch_result.detach().numpy()
-        # get onnx output
-        sess = rt.InferenceSession(output_file)
-        onnx_result = sess.run(None, {
-            'cat_input': input.detach().numpy(),
-        })
-        # only concern pred_alpha value
-        if isinstance(onnx_result, (tuple, list)):
-            onnx_result = onnx_result[0]
         # check the numerical value
-        assert np.allclose(
-            pytorch_result,
-            onnx_result), 'The outputs are different between Pytorch and ONNX'
-        print('The numerical values are same between Pytorch and ONNX')
+        try:
+            assert np.allclose(pytorch_result, onnx_result)
+            print('The numerical values are same between Pytorch and ONNX')
+        except AssertionError:
+            print('The outputs are different between Pytorch and ONNX')
