@@ -37,16 +37,20 @@ python setup.py install
 createOnnx --class-name detection \
            --config xxx.pth \
            --checkpoint xxx.point \
+           --dynamic-shape \
+           --onnx-name xxx.onnx\
            --simplify \
            --save-input \
            --save-output \
            --veirfy
 ```
 ### Parameter Description
-* --class-name:&nbsp;&nbsp;which class to convert(detection/classification/segmentation/editin)
-* --config:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config file
-* --checkpoint:&nbsp;&nbsp;  checkpoint file
-* --simplify:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;whether to simplify onnx model
-* --save-input:&nbsp;&nbsp;&nbsp;  whether to save model's input
-* --save-output:&nbsp; whether to save onnxruntime's output
-* --verify&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;whether compare the outputs between Pytorch and ONNX
+* --class-name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;which class to convert(detection/classification/segmentation/editin)
+* --config:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config file
+* --checkpoint:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  checkpoint file
+* --dynamic-shape:&nbsp;&nbsp; whether to export onnx with dynamic shape
+* --onnx-name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; output onnx model file's name
+* --simplify:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;whether to simplify onnx model
+* --save-input:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  whether to save model's input
+* --save-output:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; whether to save onnxruntime's output
+* --verify&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;whether compare the outputs between Pytorch and ONNX
