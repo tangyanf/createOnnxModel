@@ -3,22 +3,6 @@ a tool to convert mmlab model to onnx
 
 ## requirement
 * python == 3.8
-* pytorch == 1.6
-  ```shell
-  pip install torch==1.6.0 torchvision==0.7.0
-  ```
-* onnxruntime==1.5.1
-  ```shell
-  pip install onnxruntime==1.5.1
-  ```
-* onnx
-  ```shell
-  pip install onnx
-  ```
-* onnx-simplifier
-  ```shell
-  pip install onnx-simplifier
-  ```
 * mmcv-full
 
     to install mmcv-full with custom ops, we need to download onnxruntime library, And add it into environment
@@ -40,42 +24,23 @@ a tool to convert mmlab model to onnx
     cd mmcv
     MMCV_WITH_OPS=1 MMCV_WITH_ORT=1 pip install -e .
     ```
-* mmdetection
-  ```shell
-  git clone https://github.com.cnpmjs.org/open-mmlab/mmdetection.git
-  cd mmdetection
-  python setup.py install
-  ```
 
-* mmclassification
-  ```shell
-  git clone https://github.com.cnpmjs.org/open-mmlab/mmclassification.git
-  cd mmclassification
-  python setup.py install
-  ```
-* mmediting
-  ```shell
-  git clone https://github.com.cnpmjs.org/open-mmlab/mmediting.git
-  cd mmediting
-  python setup.py install
-  ```
-* mmsegmentation
-  ```shell
-  git clone https://github.com.cnpmjs.org/open-mmlab/mmsegmentation.git
-  cd mmsegmentation
-  python setup.py install
-  ```
-
+## build createOnnx
+```shell
+git clone https://github.com.cnpmjs.org/tangyanf/createOnnxModel.git
+cd createOnnxModel
+python setup.py install
+```
 
 ## usage
 ```shell
-python createOnnx.py --class-name detection \
-                     --config xxx.pth \
-                     --checkpoint xxx.point \
-                     --simplify \
-                     --save-input \
-                     --save-output \
-                     --veirfy
+createOnnx --class-name detection \
+           --config xxx.pth \
+           --checkpoint xxx.point \
+           --simplify \
+           --save-input \
+           --save-output \
+           --veirfy
 ```
 ### Parameter Description
 * --class-name:&nbsp;&nbsp;which class to convert(detection/classification/segmentation/editin)
