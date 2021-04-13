@@ -11,14 +11,16 @@ setup(
                        'data/merged/*.jpg',
                        'data/trimap/*.png']
     },
-    install_requires=['onnx',
-                      'onnx-simplifier',
-                      'torch==1.6.0',
-                      'torchvision==0.7.0',
-                      'mmcls',
+    install_requires=['mmcls',
                       'mmdet',
                       'mmedit',
-                      'mmsegmentation'],
+                      'mmsegmentation',
+                      'torchvision==0.7.0',
+                      'torch==1.6.0',
+                      'onnx-simplifier',
+                      'onnx',
+                      'numpy',
+                      'Cython']
 
     entry_points={
         'console_scripts': ['createOnnx=createOnnx.createOnnx:main']
