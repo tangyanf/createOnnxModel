@@ -20,7 +20,7 @@ setup(
                       'onnx-simplifier',
                       'onnx',
                       'numpy',
-                      'Cython']
+                      'Cython'],
 
     entry_points={
         'console_scripts': ['createOnnx=createOnnx.createOnnx:main']
