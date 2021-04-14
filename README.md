@@ -17,7 +17,7 @@ python setup.py install
   to install mmcv-full with custom ops, we need to download onnxruntime library, And add it into environment
   1. download onnxruntime-1.5.1
     ```shell
-    wget https://github.com/microsoft/onnxruntime/releases/download/v1.5.1/onnxruntime-linux-x64-1.5.1.tgz
+    wget https://github.com.cnpmjs.org/microsoft/onnxruntime/releases/download/v1.5.1/onnxruntime-linux-x64-1.5.1.tgz
     tar -zxvf onnxruntime-linux-x64-1.5.1.tgz
     ```
   2. add environment variable
