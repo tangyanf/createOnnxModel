@@ -2,7 +2,7 @@
 a tool to convert mmlab model to onnx
 
 ## requirement
-* python >= 3.8
+* python >= 3.7
 
 ## build createOnnx
 ```shell
