@@ -21,7 +21,8 @@ setup(
                       'onnx'],
 
     setup_requires=['cython',
-                    'numpy'],
+                    'numpy',
+                    'scipy'],
 
     entry_points={
         'console_scripts': ['createOnnx=createOnnx.createOnnx:main']
