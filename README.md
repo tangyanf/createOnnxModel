@@ -1,4 +1,4 @@
-# createOnnxModel
+# createonnxmodel
 a tool to convert mmlab model to onnx
 
 ## requirement
@@ -6,8 +6,8 @@ a tool to convert mmlab model to onnx
 
 ## build createOnnx
 ```shell
-git clone https://github.com.cnpmjs.org/tangyanf/createOnnxModel.git
-cd createOnnxModel
+git clone https://github.com.cnpmjs.org/tangyanf/createonnxmodel.git
+cd createonnxmodel
 python setup.py install
 ```
 
