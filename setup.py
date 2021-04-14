@@ -18,9 +18,10 @@ setup(
                       'torchvision==0.7.0',
                       'torch==1.6.0',
                       'onnx-simplifier',
-                      'onnx',
-                      'numpy',
-                      'Cython'],
+                      'onnx'],
+
+    setup_requires=['cython',
+                    'numpy'],
 
     entry_points={
         'console_scripts': ['createOnnx=createOnnx.createOnnx:main']
