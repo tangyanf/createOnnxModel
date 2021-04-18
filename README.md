@@ -28,7 +28,7 @@ python setup.py install
     ```
   3. build on linux
     ```shell
-    git clone -b without_cuda_compile https://github.com.cnpmjs.org/tangyanf/mmcv.git
+    git clone https://github.com.cnpmjs.org/open-mmlab/mmcv.git
     cd mmcv
     MMCV_WITH_OPS=1 MMCV_WITH_ORT=1 pip install -e .
     ```
