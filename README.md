@@ -36,8 +36,8 @@ python setup.py install
 ## usage
 ```shell
 createOnnx --class-name detection \
-           --config xxx.pth \
-           --checkpoint xxx.point \
+           --config xxx.py \
+           --checkpoint xxx.pth\
            --dynamic-shape \
            --onnx-name xxx.onnx \
            --simplify \
