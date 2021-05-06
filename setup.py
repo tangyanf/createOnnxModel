@@ -3,8 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='createOnnx',
     version='0.0.1',
-    classifier=[
-        'Programming Language :: Python :: 3.7',
+    classifiers=[
         'Programming Language :: Python :: 3.8'],
 
     packages=find_packages(),
@@ -28,7 +27,7 @@ setup(
     setup_requires=['cython',
                     'numpy'],
 
-    python_requires='>=3.7',
+    python_requires='>=3.8',
 
     entry_points={
         'console_scripts': ['createOnnx=createOnnx.createOnnx:main']

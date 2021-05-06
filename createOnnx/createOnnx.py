@@ -1,9 +1,9 @@
 import argparse
 import os
-from convertTool import convertDetection2Onnx
-from convertTool import convertCls2Onnx
-from convertTool import convertEdit2Onnx
-from convertTool import convertSeg2Onnx
+from .convertTool import convertDetection2Onnx
+from .convertTool import convertCls2Onnx
+from .convertTool import convertEdit2Onnx
+from .convertTool import convertSeg2Onnx
 
 def parse_args():
     parser = argparse.ArgumentParser(description='convert mmlab model to ONNX')
