@@ -159,7 +159,7 @@ def convertEdit2Onnx(config,
         pytorch_result = pytorch_result.detach().numpy()
         # check the numerical value
         try:
-            assert np.allclose(pytorch_result, onnx_result, rtol=1e-5, alol=1e-5)
+            assert np.allclose(pytorch_result, onnx_result, rtol=1e-5, atol=1e-5)
             print('The numerical values are same between Pytorch and ONNX')
         except AssertionError:
             print('The outputs are different between Pytorch and ONNX')
