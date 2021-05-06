@@ -87,27 +87,23 @@ def main():
                                      save_input=args.save_input,
                                      save_output=args.save_output,
                                      output_file=out_file,
-                                     do_simplify=args.simplify)
+                                     do_simplify=args.simplify,
+                                     dynamic_export=args.dynamic_shape)
                 else:
                     raise RuntimeError('editing model now do not support dynamic shape')
             except ValueError:
                 raise
 
         elif args.class_name == 'segmentation':
-            try:
-                if args.dynamic_shape is False:
-                    convertSeg2Onnx(args.config,
-                                    args.checkpoint,
-                                    input_shape,
-                                    save_input=args.save_input,
-                                    save_output=args.save_output,
-                                    verify=args.verify,
-                                    output_file=out_file,
-                                    do_simplify=args.simplify)
-                else:
-                    raise RuntimeError()
-            except RuntimeError:
-                print('segmentation model now do not support dynamic shape')
+            convertSeg2Onnx(args.config,
+                            args.checkpoint,
+                            input_shape,
+                            save_input=args.save_input,
+                            save_output=args.save_output,
+                            verify=args.verify,
+                            output_file=out_file,
+                            do_simplify=args.simplify,
+                            dynamic_export=args.dynamic_shape)
         else:
             raise RuntimeError()
     except RuntimeError:

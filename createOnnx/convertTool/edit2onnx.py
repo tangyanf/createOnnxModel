@@ -11,11 +11,11 @@ from mmcv.runner import load_checkpoint
 from mmedit.datasets.pipelines import Compose
 from mmedit.models import build_model
 
-merged_img = os.path.join(os.path.dirname(__file__), './data/merged/GT05.jpg')
-trimap_img = os.path.join(os.path.dirname(__file__), './data/merged/GT05.jpg')
+merged_img = os.path.join(os.path.dirname(__file__), '../data/merged/GT05.jpg')
+trimap_img = os.path.join(os.path.dirname(__file__), '../data/merged/GT05.jpg')
 
-lq_img = os.path.join(os.path.dirname(__file__), './data/lq/baboon_x4.png')
-gt_img = os.path.join(os.path.dirname(__file__), './data/gt/baboon.png')
+lq_img = os.path.join(os.path.dirname(__file__), '../data/lq/baboon_x4.png')
+gt_img = os.path.join(os.path.dirname(__file__), '../data/gt/baboon.png')
 
 def convertEdit2Onnx(config,
                      checkpoint,
@@ -26,25 +26,27 @@ def convertEdit2Onnx(config,
                      output_file='tmp.onnx',
                      save_input=False,
                      save_output=False,
-                     verify=False):
+                     verify=False,
+                     dynamic_export=False):
 
     config = mmcv.Config.fromfile(config)
     config.model.pretrained = None
-    # ONNX does not support spectral norm
-    if hasattr(config.model, 'backone') and hasattr(config.model.backbone.encoder, 'with_spectral_norm'):
-        config.model.backbone.encoder.with_spectral_norm = False
-        config.model.backbone.decoder.with_spectral_norm = False
-    config.test_cfg.metrics = None
+    if edit_class == 'mattors':
+        if hasattr(config.model.backbone.encoder, 'with_spectral_norm'):
+            config.model.backbone.encoder.with_spectral_norm = False
+            config.model.backbone.decoder.with_spectral_norm = False
+        config.test_cfg.metrics = None
 
     # build the model
     model = build_model(config.model, test_cfg=config.test_cfg)
     checkpoint = load_checkpoint(model, checkpoint, map_location='cpu')
 
-    model.cpu().eval()
-    model.forward = model.forward_dummy
-
     # remove alpha from test_pipeline
-    keys_to_remove = ['alpha', 'ori_alpha']
+    keys_to_remove=list()
+    if edit_class == 'mattors':
+        keys_to_remove = ['alpha', 'ori_alpha']
+    elif edit_class == 'restores':
+        keys_to_remove = ['gt', 'gt_path']
     for key in keys_to_remove:
         for pipeline in list(config.test_pipeline):
             if 'key' in pipeline and key == pipeline['key']:
@@ -66,28 +68,45 @@ def convertEdit2Onnx(config,
             merged = input['merged'].unsqueeze(0)
             trimap = input['trimap'].unsqueeze(0)
             input = torch.cat((merged, trimap), 1)
-        elif edit_class == 'restorers':
+        elif edit_class == 'restores':
             data = dict(lq_path=lq_img, gt_path=gt_img)
             input = test_pipeline(data)
             input = input['lq'].unsqueeze(0)
         else:
-            raise ValueError('edit_class {} is not support, please chose mattors or restorers'.format(edit_class))
+            raise ValueError('edit_class {} is not support, please chose mattors or restores'.format(edit_class))
     except ValueError:
         raise
 
     # pytorch has some bug in pytorch1.3, we have to fix it
     # by replacing these existing op
+    model.forward = model.forward_dummy
     register_extra_symbolics(opset_version)
+    dynamic_axes = None
+    if dynamic_export:
+        dynamic_axes = {
+            'input': {
+                0: 'batch',
+                2: 'height',
+                3: 'width'
+            },
+            'output': {
+                0: 'batch',
+                2: 'height',
+                3: 'width'
+            }
+        }
     with torch.no_grad():
         torch.onnx.export(
             model,
             input,
             output_file,
             input_names=['input'],
+            output_names=['output'],
             export_params=True,
             keep_initializers_as_inputs=True,
             verbose=show,
-            opset_version=opset_version)
+            opset_version=opset_version,
+            dynamic_axes=dynamic_axes)
 
         # simplify onnx model
         if do_simplify:
@@ -105,6 +124,8 @@ def convertEdit2Onnx(config,
                                          check_n=0,
                                          skip_fuse_bn=True,
                                          skip_shape_inference=True,
+                                         input_shapes=dict(input=[1,3,224,224]),
+                                         dynamic_input_shape=True,
                                          custom_lib=ort_custom_op_path)
             onnx.save(onnx_opt_model, output_file)
     print(f'Successfully exported ONNX model: {output_file}')
@@ -138,7 +159,7 @@ def convertEdit2Onnx(config,
         pytorch_result = pytorch_result.detach().numpy()
         # check the numerical value
         try:
-            assert np.allclose(pytorch_result, onnx_result)
+            assert np.allclose(pytorch_result, onnx_result, rtol=1e-5, alol=1e-5)
             print('The numerical values are same between Pytorch and ONNX')
         except AssertionError:
             print('The outputs are different between Pytorch and ONNX')

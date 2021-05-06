@@ -77,7 +77,8 @@ def convertSeg2Onnx(config,
                     save_input=False,
                     save_output=False,
                     output_file='tmp.onnx',
-                    verify=False):
+                    verify=False,
+                    dynamic_export=False):
     """Export Pytorch model to ONNX model and verify the outputs are same
     between Pytorch and ONNX.
 
@@ -125,6 +126,20 @@ def convertSeg2Onnx(config,
     model.forward = partial(
         model.forward, img_metas=img_meta_list, return_loss=False)
 
+    dynamic_axes = None
+    if dynamic_export:
+        dynamic_axes = {
+            'input': {
+                0: 'batch',
+                2: 'height',
+                3: 'width'
+            },
+            'output': {
+                1: 'batch',
+                2: 'height',
+                3: 'width'
+            }
+        }
     register_extra_symbolics(opset_version)
     with torch.no_grad():
         torch.onnx.export(
@@ -135,7 +150,8 @@ def convertSeg2Onnx(config,
             export_params=True,
             keep_initializers_as_inputs=True,
             verbose=show,
-            opset_version=opset_version)
+            opset_version=opset_version,
+            dynamic_axes=dynamic_axes)
         print(f'Successfully exported ONNX model: {output_file}')
 
         # simplify onnx model
