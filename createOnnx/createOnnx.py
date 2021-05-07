@@ -1,9 +1,9 @@
 import argparse
 import os
-from .convertTool import convertDetection2Onnx
-from .convertTool import convertCls2Onnx
-from .convertTool import convertEdit2Onnx
-from .convertTool import convertSeg2Onnx
+from createOnnx.convertTool import detection2onnx
+from createOnnx.convertTool import cls2onnx
+from createOnnx.convertTool import edit2onnx
+from createOnnx.convertTool import seg2onnx
 
 def parse_args():
     parser = argparse.ArgumentParser(description='convert mmlab model to ONNX')
@@ -53,7 +53,7 @@ def main():
     try:
         if args.class_name == 'detection':
             normalize_cfg = {'mean': mean, 'std': std}
-            convertDetection2Onnx(args.config,
+            detection2onnx.convertDetection2Onnx(args.config,
                                   args.checkpoint,
                                   input_img,
                                   input_shape,
@@ -66,7 +66,7 @@ def main():
                                   dynamic_export=args.dynamic_shape,
                                   do_simplify=args.simplify)
         elif args.class_name == 'classification':
-            convertCls2Onnx(args.config,
+            cls2onnx.convertCls2Onnx(args.config,
                             args.checkpoint,
                             input_shape,
                             verify=args.verify,
@@ -80,7 +80,7 @@ def main():
                 if args.edit_class is None:
                     raise ValueError('please use --edit-class mattors/restores chose which edit model class to convert')
                 if args.dynamic_shape is False:
-                    convertEdit2Onnx(args.config,
+                    edit2onnx.convertEdit2Onnx(args.config,
                                      args.checkpoint,
                                      edit_class=args.edit_class,
                                      verify=args.verify,
@@ -95,7 +95,7 @@ def main():
                 raise
 
         elif args.class_name == 'segmentation':
-            convertSeg2Onnx(args.config,
+            seg2onnx.convertSeg2Onnx(args.config,
                             args.checkpoint,
                             input_shape,
                             save_input=args.save_input,
