@@ -30,6 +30,6 @@ setup(
     python_requires='>=3.8',
 
     entry_points={
-        'console_scripts': ['createOnnx=createOnnx.createOnnx:main']
+        'console_scripts': ['createOnnx=createOnnx.main:main']
     }
 )
