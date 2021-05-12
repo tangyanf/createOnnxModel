@@ -255,7 +255,7 @@ def convertSeg2Onnx(config,
                                      check_n=0,
                                      skip_fuse_bn=True,
                                      skip_shape_inference=True,
-                                     input_shapes=dict(input=[1,3,400,800]),
+                                     input_shapes=dict(input=[1,3,480,640]),
                                      dynamic_input_shape=True,
                                      custom_lib=ort_custom_op_path)
         onnx.save(onnx_opt_model, output_file)
