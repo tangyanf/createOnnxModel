@@ -97,7 +97,6 @@ def main():
         elif args.class_name == 'segmentation':
             seg2onnx.convertSeg2Onnx(args.config,
                             args.checkpoint,
-                            input_shape,
                             save_input=args.save_input,
                             save_output=args.save_output,
                             verify=args.verify,
