@@ -122,7 +122,7 @@ def convertEdit2Onnx(config,
 
             onnx_opt_model, _ = simplify(output_file,
                                          check_n=0,
-                                         skip_fuse_bn=True,
+                                         skip_fuse_bn=False,
                                          skip_shape_inference=True,
                                          input_shapes=dict(input=[1,3,224,224]),
                                          dynamic_input_shape=True,
